@@ -4,7 +4,7 @@ use lib "$FindBin::Bin/../lib";
 use IRCTurtle;
 use Getopt::Long::Descriptive;
 my ( $opt, $usage ) = describe_options(
-    'my-program %o <some-arg>',
+    '%c %o <some-arg>',
     [ 'host|h=s', "the host to connect to" ],
     [ 'nick|n=s', "nick,alias" ],
     [ 'channel|c=s', "channel to join" ],

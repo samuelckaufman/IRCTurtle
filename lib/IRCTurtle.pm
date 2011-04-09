@@ -2,7 +2,10 @@ package IRCTurtle;
 use Moo;
 use IO::Async::Loop;
 use Net::Async::IRC;
-
+use constant {
+    JOIN => 'JOIN',
+    PRIVMSG => 'PRIVMSG'
+};
 has loop => (
     is => 'ro',
     lazy => 1,
@@ -29,10 +32,14 @@ has channel => (
 
 sub _build_irc {
     my $self = shift;
+    my $nick = $self->nick;
     my $irc = Net::Async::IRC->new(
         on_message_text => sub {
-            my ( $self, $message, $hints ) = @_;
+            my ( $irc, $message, $hints ) = @_;
             print "$hints->{prefix_name} says: $hints->{text}\n";
+            return unless $hints->{text} =~ /^$nick:/;
+            my ($text) = $hints->{text} =~ /^$nick:(.*?)$/;
+            $irc->send_message( PRIVMSG, undef, $self->channel, $text );
         }
     );
     $self->loop->add($irc);

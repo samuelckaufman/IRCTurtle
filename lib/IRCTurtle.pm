@@ -57,3 +57,6 @@ sub launch {
     $self->loop->loop_forever;
 }
 1;
+
+__END__
+# ABSTRACT: Git commit watcher

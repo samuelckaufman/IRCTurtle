@@ -17,5 +17,6 @@ my $turtle = IRCTurtle->new(
     host    => $opt->host,
     nick    => $opt->nick,
     channel => $opt->channel,
+    socket_location => "/tmp/ircturtle.sock",
 );
 $turtle->launch;

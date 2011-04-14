@@ -1,7 +1,8 @@
 package IRCTurtle;
-use Moo;
+use Moose;
 use IO::Async::Loop;
 use Net::Async::IRC;
+with 'Role::UnixSocket';
 use constant {
     JOIN => 'JOIN',
     PRIVMSG => 'PRIVMSG'
@@ -29,7 +30,11 @@ has channel => (
     is => 'ro',
     required => 1,
 );
-
+sub socket_callback {
+    my($self,$str) = @_;
+    chomp($str);
+    $self->irc->send_message( PRIVMSG, undef, $self->channel, $str );
+}
 sub _build_irc {
     my $self = shift;
     my $nick = $self->nick;
@@ -51,7 +56,7 @@ sub launch {
         nick => $self->nick,
         host => $self->host,
         on_login => sub {
-            $self->irc->send_message( "JOIN", undef, $self->channel );
+            $self->irc->send_message( JOIN, undef, $self->channel );
         },
     );
     $self->loop->loop_forever;

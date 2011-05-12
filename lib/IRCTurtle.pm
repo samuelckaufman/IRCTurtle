@@ -4,8 +4,8 @@ use IO::Async::Loop;
 use Net::Async::IRC;
 with 'Role::UnixSocket';
 use constant {
-    JOIN => 'JOIN',
-    PRIVMSG => 'PRIVMSG'
+    J => 'JOIN',
+    PM => 'PRIVMSG'
 };
 has loop => (
     is => 'ro',
@@ -33,7 +33,11 @@ has channel => (
 sub socket_callback {
     my($self,$str) = @_;
     chomp($str);
-    $self->irc->send_message( PRIVMSG, undef, $self->channel, $str );
+    my @lines = split(/\v/,$str);
+    for(@lines) {
+        $self->irc->send_message( PM , undef, $self->channel, $_ );
+        sleep 2;
+    }
 }
 sub _build_irc {
     my $self = shift;
@@ -44,7 +48,11 @@ sub _build_irc {
             print "$hints->{prefix_name} says: $hints->{text}\n";
             return unless $hints->{text} =~ /^$nick:/;
             my ($text) = $hints->{text} =~ /^$nick:(.*?)$/;
-            $irc->send_message( PRIVMSG, undef, $self->channel, $text );
+            my ($first_word) = $text =~ m/(\w+)/;
+            my $output = `rhyme $first_word`;
+            $self->socket_callback($output);
+#            $irc->send_message( PM, undef, $self->channel, $text );
+#            sleep 1;
         }
     );
     $self->loop->add($irc);
@@ -56,7 +64,7 @@ sub launch {
         nick => $self->nick,
         host => $self->host,
         on_login => sub {
-            $self->irc->send_message( JOIN, undef, $self->channel );
+            $self->irc->send_message( J, undef, $self->channel );
         },
     );
     $self->loop->loop_forever;

@@ -8,6 +8,7 @@ my ( $opt, $usage ) = describe_options(
     [ 'host|h=s', "the host to connect to" ],
     [ 'nick|n=s', "nick,alias" ],
     [ 'channel|c=s', "channel to join" ],
+    [ 'socket|s=s',"location of socket",{default => '/tmp/ircturtle.sock'}],
     [ 'help',      "print usage message and exit" ],
 );
 
@@ -17,6 +18,6 @@ my $turtle = IRCTurtle->new(
     host    => $opt->host,
     nick    => $opt->nick,
     channel => $opt->channel,
-    socket_location => "/tmp/ircturtle.sock",
+    socket_location => $opt->socket,
 );
 $turtle->launch;

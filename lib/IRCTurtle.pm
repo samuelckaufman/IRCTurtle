@@ -7,11 +7,6 @@ use constant {
     J => 'JOIN',
     PM => 'PRIVMSG'
 };
-has loop => (
-    is => 'ro',
-    lazy => 1,
-    default => sub { IO::Async::Loop->new }
-);
 has irc => (
     is => 'ro',
     builder => '_build_irc',
@@ -26,17 +21,18 @@ has host => (
     required => 1,
 );
 
-has channel => (
+has channels => (
     is => 'ro',
+    isa => 'ArrayRef',
     required => 1,
 );
 sub socket_callback {
     my($self,$str) = @_;
     chomp($str);
+    my @channels = @{$self->channels};
     my @lines = split(/\v/,$str);
-    for(@lines) {
-        $self->irc->send_message( PM , undef, $self->channel, $_ );
-        sleep 2;
+    for my $line(@lines) {
+        $self->irc->send_message( PM, undef, $_, $line ) for(@channels);
     }
 }
 sub _build_irc {
@@ -51,8 +47,6 @@ sub _build_irc {
             my ($first_word) = $text =~ m/(\w+)/;
             my $output = `rhyme $first_word`;
             $self->socket_callback($output);
-#            $irc->send_message( PM, undef, $self->channel, $text );
-#            sleep 1;
         }
     );
     $self->loop->add($irc);
@@ -60,11 +54,12 @@ sub _build_irc {
 }
 sub launch {
     my $self = shift;
+    my @channels = @{$self->channels};
     $self->irc->login(
         nick => $self->nick,
         host => $self->host,
         on_login => sub {
-            $self->irc->send_message( J, undef, $self->channel );
+            $self->irc->send_message( J, undef, $_ ) for(@channels);
         },
     );
     $self->loop->loop_forever;

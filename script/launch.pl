@@ -19,4 +19,5 @@ my $turtle = IRCTurtle->new(
     channels => $opt->channels,
     socket_location => $opt->socket,
 );
-$turtle->launch;
+my $pid = fork;
+$turtle->launch if($pid == 0);
